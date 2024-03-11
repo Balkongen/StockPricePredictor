@@ -1,0 +1,42 @@
+name: Push other repo
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        path: src
+        persist-credentials: false
+
+    - name: Checkout other repo
+      uses: actions/checkout@v4
+      with:
+        path: dest
+        repository: ${{secrets.REPOSITORY}}
+        token: ${{secrets.TOKEN}}
+        persist-credentials: true
+    
+    - name: ls directory
+      run: ls
+
+    - name: Remove files in directory
+      run: rm dest/App/Models/* 
+
+    - name: Copy directory
+      run: cp -r src/App/Scripts/Prediction/Trained_models/* dest/App/Models
+
+    - name: git 
+      working-directory: dest
+      run: |
+        git config --global user.email ${{secrets.EMAIL}}
+        git config --global user.name ${{secrets.NAME}}
+        git add -A
+        git commit -m "Updated models"
+        git push
